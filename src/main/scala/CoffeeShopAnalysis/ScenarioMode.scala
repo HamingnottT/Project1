@@ -1,11 +1,10 @@
 package CoffeeShopAnalysis
 
 import org.apache.spark.sql.{DataFrame, SparkSession}
-import org.apache.spark.sql.types._
-import org.apache.spark.sql.Row
-import org.apache.spark.rdd.RDD
+import org.apache.spark.sql.functions._
 import org.apache.log4j.Level
 import org.apache.log4j.{Level, Logger}
+
 import org.apache.spark.sql.types.StructField
 //import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.sql.hive.test.TestHive.createDataFrame
@@ -62,12 +61,12 @@ object ScenarioMode {
   def scenario2(spark: SparkSession): Unit ={
     /* ~ Most Consumed beverages for Branch 1 ~ */
     println("+" + ("=" * 49) + "+")
-    println("Top 5 most consumed beverages in Branch 1:")
+    println("Top most consumed beverages in Branch 1:")
     println("+" + ("=" * 49) + "+")
     spark.sql("SELECT DISTINCT c.beverage, c.conscount FROM bev_branches b JOIN bev_conscount c ON b.beverage=c.beverage WHERE b.branch = 'Branch1' ORDER BY c.conscount desc").show(1)
     println("+" + ("=" * 49) + "+")
     /* ~ Lease Consumed beverages for Branch 2 ~ */
-    println("Top 5 least consumed beverages in Branch 2:")
+    println("Top least consumed beverages in Branch 2:")
     println("+" + ("=" * 49) + "+")
     spark.sql("SELECT DISTINCT c.beverage, c.conscount FROM bev_branches b JOIN bev_conscount c ON b.beverage=c.beverage WHERE b.branch = 'Branch2' ORDER BY c.conscount asc").show(1)
     /* ~ Average Consumed beverages for Branch 2 ~ */
@@ -146,53 +145,49 @@ object ScenarioMode {
   }
 
   def scenario6(spark: SparkSession): Unit ={
-    import spark.implicits._
-    //  spark.sql("SELECT DISTINCT beverage, branch FROM bev_branches ORDER BY branch asc").show(200)
-    //    spark.sql("SELECT max(c.conscount) FROM bev_branches b JOIN bev_conscount c ON b.beverage=c.beverage").show()
-    //    spark.sql("SELECT DISTINCT b.branch, c.beverage FROM bev_branches b JOIN bev_conscount c ON b.beverage=c.beverage WHERE c.conscount = 1052 ORDER BY b.branch asc").show(150)
+    /* The purpose of scenario 6 is a macro glimpse of Coffee Shop Inc.
+     * in terms of beverage variety/availability and how it relates to branch
+     * performance. */
 
-    /* declaration of RDDs */
-    val branchARDD = spark.sparkContext.textFile("input/Bev_BranchA.txt")
-    val branchBRDD = spark.sparkContext.textFile("input/Bev_BranchB.txt")
-    val branchCRDD = spark.sparkContext.textFile("input/Bev_BranchC.txt")
-    val conscountARDD = spark.sparkContext.textFile("input/Bev_BranchA.txt")
-    val conscountBRDD = spark.sparkContext.textFile("input/Bev_BranchB.txt")
-    val conscountCRDD = spark.sparkContext.textFile("input/Bev_BranchC.txt")
-
-    /* Conversion of RDDs to DFs by Mirroring Method */
-    val branchRDDA2 = branchARDD.map(_.split(","))
-    val branchADF = branchRDDA2.map(attributes => bevBranchA(attributes(0), attributes(1).trim)).toDF()
-    branchADF.show()
-
-    //    println("+" + ("-" * 49) + "+")
-    val branchRDDB2 = branchBRDD.map(_.split(","))
-    val branchBDF = branchRDDB2.map(attributes => bevBranchB(attributes(0), attributes(1).trim)).toDF()
-    branchBDF.show()
-
-    //    println("+" + ("-" * 49) + "+")
-    val branchRDDC2 = branchCRDD.map(_.split(","))
-    val branchCDF = branchRDDC2.map(attributes => bevBranchC(attributes(0), attributes(1).trim)).toDF()
-    branchCDF.show()
-
-//    println("+" + ("-" * 49) + "+")
-    val conscountARDD2 = conscountARDD.map(_.split(","))
-    val conscountADF = conscountARDD2.map(attributes => bevConscountA(attributes(0), attributes(1).trim)).toDF()
-    conscountADF.show()
-
-//    println("+" + ("-" * 49) + "+")
-    val conscountBRDD2 = conscountBRDD.map(_.split(","))
-    val conscountBDF = conscountBRDD2.map(attributes => bevConscountB(attributes(0), attributes(1).trim)).toDF()
-    conscountBDF.show()
-
-//    println("+" + ("-" * 49) + "+")
-    val conscountCRDD2 = conscountCRDD.map(_.split(","))
-    val conscountCDF = conscountCRDD2.map(attributes => bevConscountC(attributes(0), attributes(1).trim)).toDF()
-    conscountCDF.show()
+    lazy val pop_beverages = spark.sql("SELECT DISTINCT b.branch, c.beverage FROM bev_branches b JOIN bev_conscount c ON b.beverage=c.beverage WHERE c.conscount = 1052 ORDER BY b.branch asc")
+    lazy val pivot1src = spark.sql("SELECT b.branch, c.beverage, c.conscount FROM bev_branches b JOIN bev_conscount c ON b.beverage=c.beverage")
+    val tsvWithHeaderOptions: Map[String, String] = Map(
+      ("delimiter", "\t"), // Uses "\t" delimiter instead of default ","
+      ("header", "true"))
+    /* ~ Output most popular beverages by branch in csv - for Excel use ~ */
+    /*
+    pop_beverages.coalesce(1)         // Writes to a single file
+      .write
+      .mode(SaveMode.Overwrite)
+      .options(tsvWithHeaderOptions)
+      .csv("output/pop_beverages")
+    */
 
 
-    /* Creation of bev_branch RDDs */
 
+    println("+" + ("=" * 49) + "+")
+    println("Absolute maximum consumer sales per beverage:")
+    println("+" + ("=" * 49) + "+")
+    spark.sql("SELECT max(c.conscount) FROM bev_branches b JOIN bev_conscount c ON b.beverage=c.beverage").show()
+    println("+" + ("=" * 49) + "+")
+    println("Total number of beverages available over entire region:")
+    println("+" + ("=" * 49) + "+")
+    spark.sql("SELECT count(b.beverage) FROM bev_branches b JOIN bev_conscount c ON b.beverage=c.beverage").show
 
+    println("+" + ("=" * 49) + "+")
+    println("Total consumer sales in all branches:")
+    println("+" + ("=" * 49) + "+")
+    pivot1src.groupBy("b.branch").agg(sum("c.conscount")).sort("b.branch").show(50)
+
+    println("+" + ("=" * 49) + "+")
+    println("Total number of beverages available per branch:")
+    println("+" + ("=" * 49) + "+")
+    pivot1src.groupBy("b.branch").agg(count("c.beverage")).sort("b.branch").show(50)
+
+    println("+" + ("=" * 49) + "+")
+    println("Beverage consumer sales per branch:")
+    println("+" + ("=" * 49) + "+")
+    pivot1src.groupBy("c.beverage").pivot("b.branch").agg(count("c.conscount")).sort("c.beverage").show(50)
   }
 
   def main(args: Array[String]): Unit = {
