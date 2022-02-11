@@ -9,6 +9,14 @@
      * Originally had plans to use in scenario 6 but cut due to redundancy
      * saving for potential future use */
 
+    /* Case classes for Mirroring method */
+    //  case class bevBranchA(beverage: String, branch: String)
+    //  case class bevBranchB(beverage: String, branch: String)
+    //  case class bevBranchC(beverage: String, branch: String)
+    //  case class bevConscountA(beverage: String, branch: String)
+    //  case class bevConscountB(beverage: String, branch: String)
+    //  case class bevConscountC(beverage: String, branch: String)
+
     /*
    val branchARDD = spark.sparkContext.textFile("input/Bev_BranchA.txt")
    val branchBRDD = spark.sparkContext.textFile("input/Bev_BranchB.txt")
@@ -60,3 +68,30 @@
    val coffeeShopDF = branchDF.union(conscountDF)
    coffeeShopDF.write.json("input/test.json")
    */
+
+    /* Originally on GenSparkData
+    * same code found on ScenarioMode
+    * removed and placed here due to redundancy */
+
+    //def createDatabase(spark: SparkSession): Unit ={
+      /* ~ Create Spark SQL tables - loading Branch & conscount respectively ~ */
+      //        spark.sql("create table if not exists bev_branches(beverage String,branch String) row format delimited fields terminated by ','")
+      //        spark.sql("create table if not exists bev_conscount(beverage String,conscount Int) row format delimited fields terminated by ','")
+      /* ~ Load Bev Branch data into bev_branches ~ */
+      //        spark.sql("LOAD DATA LOCAL INPATH 'input/Bev_BranchA.txt' INTO TABLE bev_branches")
+      //        spark.sql("LOAD DATA LOCAL INPATH 'input/Bev_BranchB.txt' INTO TABLE bev_branches")
+      //        spark.sql("LOAD DATA LOCAL INPATH 'input/Bev_BranchC.txt' INTO TABLE bev_branches")
+      /* ~ Load Bev Conscount data into bev_conscount ~ */
+      //        spark.sql("LOAD DATA LOCAL INPATH 'input/Bev_ConscountA.txt' INTO TABLE bev_conscount")
+      //        spark.sql("LOAD DATA LOCAL INPATH 'input/Bev_ConscountB.txt' INTO TABLE bev_conscount")
+      //        spark.sql("LOAD DATA LOCAL INPATH 'input/Bev_ConscountC.txt' INTO TABLE bev_conscount")
+    //}
+
+/* Misc */
+//    Creation of the SQL data tables from GenSparkData
+//    CoffeeShopAnalysis.GenSparkData.createDatabase(spark: SparkSession)
+//    CoffeeShopAnalysis.GenSparkData.scenario1(spark: SparkSession)
+//    CoffeeShopAnalysis.GenSparkData.scenario2(spark: SparkSession)
+
+
+//      Testing.P1QueryTEST.scenario1(spark: SparkSession)

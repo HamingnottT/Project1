@@ -5,21 +5,10 @@ import org.apache.spark.sql.functions._
 import org.apache.log4j.Level
 import org.apache.log4j.{Level, Logger}
 
-import org.apache.spark.sql.types.StructField
-//import org.apache.spark.{SparkConf, SparkContext}
-import org.apache.spark.sql.hive.test.TestHive.createDataFrame
-
 object ScenarioMode {
   Logger.getLogger("org").setLevel(Level.OFF)
   Logger.getLogger("akka").setLevel(Level.OFF)
 //  val sc = new SparkContext()
-  /* Case classes for Mirroring method */
-  case class bevBranchA(beverage: String, branch: String)
-  case class bevBranchB(beverage: String, branch: String)
-  case class bevBranchC(beverage: String, branch: String)
-  case class bevConscountA(beverage: String, branch: String)
-  case class bevConscountB(beverage: String, branch: String)
-  case class bevConscountC(beverage: String, branch: String)
 
   //Tables creation - load once then comment out
   def createDatabase(spark: SparkSession): Unit ={
@@ -89,6 +78,11 @@ object ScenarioMode {
     println("beverages available on Branch10")
     println("+" + ("=" * 49) + "+")
     spark.sql("SELECT DISTINCT c.beverage FROM bev_branches b JOIN bev_conscount c ON b.beverage=c.beverage WHERE b.branch = 'Branch10'").show(40)
+    /* ~ Beverage availability on Branch 9 ~ */
+    println("+" + ("=" * 49) + "+")
+    println("beverages available on Branch9")
+    println("+" + ("=" * 49) + "+")
+    spark.sql("SELECT DISTINCT c.beverage FROM bev_branches b JOIN bev_conscount c ON b.beverage=c.beverage WHERE b.branch = 'Branch9'").show(40)
     /* ~ Beverage availability on Branch 8 ~ */
     println("+" + ("=" * 49) + "+")
     println("beverages available on Branch8")
@@ -113,7 +107,13 @@ object ScenarioMode {
     /* ~ Loads data from other tables into partitioned table ~ */
     //    spark.sql("INSERT OVERWRITE TABLE bev_branches_partitioned PARTITION(branch) SELECT beverage,branch FROM bev_branches")
     /* ~  Showcase of partitioned table calling Branch 4 & 7 ~ */
+    println("+" + ("=" * 49) + "+")
+    println(
+      s"""NOTE: Partitioned table is a table created based on the joined main tables.
+         |This showcase calls branch 4 and 7 like scenario 3.""".stripMargin)
+    println("+" + ("=" * 49) + "+")
     spark.sql("SELECT * FROM bev_branches_partitioned WHERE branch = 'Branch4' OR branch = 'Branch7'").show(150)
+    spark.sql("Describe formatted bev_branches_partitioned").show(50)
   }
 
   def scenario5(spark: SparkSession): Unit ={
@@ -141,7 +141,6 @@ object ScenarioMode {
     //    spark.sql("DELETE FROM bev_branches_partitioned WHERE branch = 'Branch4' AND beverage = 'SMALL_cappuccino'")
     //    println("~ After row deletion ~")
     //    spark.sql("SELECT count(beverage) FROM bev_branches_partitioned WHERE branch = 'Branch4'").show()
-
   }
 
   def scenario6(spark: SparkSession): Unit ={
@@ -163,12 +162,11 @@ object ScenarioMode {
       .csv("output/pop_beverages")
     */
 
-
-
     println("+" + ("=" * 49) + "+")
     println("Absolute maximum consumer sales per beverage:")
     println("+" + ("=" * 49) + "+")
     spark.sql("SELECT max(c.conscount) FROM bev_branches b JOIN bev_conscount c ON b.beverage=c.beverage").show()
+
     println("+" + ("=" * 49) + "+")
     println("Total number of beverages available over entire region:")
     println("+" + ("=" * 49) + "+")
@@ -194,7 +192,6 @@ object ScenarioMode {
     /* Unused by MainPortal - this main method is still required for program to work
     *  Use this function for debugging */
 
-
     System.setProperty("hadoop.home.dir", "C:\\winutils")
 
     val spark = SparkSession
@@ -213,7 +210,7 @@ object ScenarioMode {
 //        scenario3(spark: SparkSession)
 //        scenario4(spark: SparkSession)
 //        scenario5(spark: SparkSession)
-        scenario6(spark: SparkSession)
+//        scenario6(spark: SparkSession)
 
   }
 }
