@@ -1,6 +1,6 @@
 package CoffeeShopAnalysis
 
-import org.apache.spark.sql.{DataFrame, SparkSession}
+import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
 import org.apache.spark.sql.functions._
 import org.apache.log4j.Level
 import org.apache.log4j.{Level, Logger}
@@ -149,17 +149,20 @@ object ScenarioMode {
      * performance. */
 
     lazy val pop_beverages = spark.sql("SELECT DISTINCT b.branch, c.beverage FROM bev_branches b JOIN bev_conscount c ON b.beverage=c.beverage WHERE c.conscount = 1052 ORDER BY b.branch asc")
+    lazy val avail_bev = pivot1src.groupBy("b.branch").agg(count("c.beverage")).sort("b.branch")
+    lazy val totalSales = pivot1src.groupBy("c.beverage").pivot("b.branch").agg(count("c.conscount")).sort("c.beverage")
+    lazy val combinedTable = spark.sql("select b.branch, c.beverage, c.conscount from bev_branches b join bev_conscount c on b.beverage = c.beverage ORDER BY b.branch desc")
     lazy val pivot1src = spark.sql("SELECT b.branch, c.beverage, c.conscount FROM bev_branches b JOIN bev_conscount c ON b.beverage=c.beverage")
     val tsvWithHeaderOptions: Map[String, String] = Map(
-      ("delimiter", "\t"), // Uses "\t" delimiter instead of default ","
+//      ("delimiter", "\t"), // Uses "\t" delimiter instead of default ","
       ("header", "true"))
     /* ~ Output most popular beverages by branch in csv - for Excel use ~ */
     /*
-    pop_beverages.coalesce(1)         // Writes to a single file
+    avail_bev.coalesce(1)         // Writes to a single file
       .write
       .mode(SaveMode.Overwrite)
       .options(tsvWithHeaderOptions)
-      .csv("output/pop_beverages")
+      .csv("output/avail_bev")
     */
 
     println("+" + ("=" * 49) + "+")
@@ -183,7 +186,7 @@ object ScenarioMode {
     pivot1src.groupBy("b.branch").agg(count("c.beverage")).sort("b.branch").show(50)
 
     println("+" + ("=" * 49) + "+")
-    println("Beverage consumer sales per branch:")
+    println("Individual beverage sales per branch:")
     println("+" + ("=" * 49) + "+")
     pivot1src.groupBy("c.beverage").pivot("b.branch").agg(count("c.conscount")).sort("c.beverage").show(50)
   }
@@ -211,6 +214,5 @@ object ScenarioMode {
 //        scenario4(spark: SparkSession)
 //        scenario5(spark: SparkSession)
 //        scenario6(spark: SparkSession)
-
   }
 }
