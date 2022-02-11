@@ -26,7 +26,6 @@ object GenSparkData extends App{
   def scenarioMode: Unit ={
     val m = CoffeeShopAnalysis.MainPortal
     val s = CoffeeShopAnalysis.ScenarioMode
-    val t = Testing.P1QueryTEST
 
     println("+" + ("=" * 49) + "+" +
       s"""\nScenario Mode chosen. This lists out Project 1's
@@ -75,42 +74,4 @@ object GenSparkData extends App{
       }
     }
   }
-
-  def futureQuery: Unit = {
-    val m = CoffeeShopAnalysis.MainPortal
-    val t = Testing.P1QueryTEST
-    println("+" + ("=" * 49) + "+" +
-      s"""\nFuture predictions chosen. This is a hypothetical
-         |analysis of what could happen in the next year, and
-         |how it may affect the organization's future goals.
-         |""".stripMargin + "+" + ("=" * 49) + "+")
-
-    println(
-      s"""\nChoose an option below:\n
-         |1. Scenario 1
-         |2. Scenario 2
-         |3. Scenario 3
-         |4. Scenario 4
-         |5. Scenario 5
-         |6. Scenario 6
-         |7. Back to main menu
-         |8. Cancel & Exit
-         |""".stripMargin)
-
-    println("Input option here:")
-    var userInputFuture = readInt()
-
-    userInputFuture match {
-      case 1 => println("TEST 1")
-      case 2 => println("TEST 2")
-      case 3 => println("TEST 3")
-      case 4 => println("TEST 4")
-      case 5 => println("TEST 5")
-      case 6 => println("TEST 6")
-      case 7 => m.main(args: Array[String])
-      case 8 => println("\nEnding program...")
-      case _ => println("Invalid response - please try again.")
-    }
-  }
-
 }

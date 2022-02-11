@@ -8,7 +8,6 @@ import org.apache.log4j.{Level, Logger}
 object ScenarioMode {
   Logger.getLogger("org").setLevel(Level.OFF)
   Logger.getLogger("akka").setLevel(Level.OFF)
-//  val sc = new SparkContext()
 
   //Tables creation - load once then comment out
   def createDatabase(spark: SparkSession): Unit ={
@@ -33,11 +32,13 @@ object ScenarioMode {
     println("What is the total number of consumers for Branch1?")
     println("+" + ("=" * 49) + "+")
     spark.sql("SELECT sum(c.conscount) FROM bev_branches b join bev_conscount c on b.beverage=c.beverage where b.branch = 'Branch1'").show()
+
     /* ~ Total consumers for Branch 2 ~ */
     println("+" + ("=" * 49) + "+")
     println("What is the total number of consumers for Branch2?")
     println("+" + ("=" * 49) + "+")
     spark.sql("SELECT sum(c.conscount) FROM bev_branches b join bev_conscount c on b.beverage=c.beverage where b.branch = 'Branch2'").show()
+
     /* ~ Combined table of Bev_Branches and Bev_Conscount ~ */
     println("+" + ("=" * 49) + "+")
     println(s"""Combined table of Branches and Consumer Count
@@ -54,10 +55,12 @@ object ScenarioMode {
     println("+" + ("=" * 49) + "+")
     spark.sql("SELECT DISTINCT c.beverage, c.conscount FROM bev_branches b JOIN bev_conscount c ON b.beverage=c.beverage WHERE b.branch = 'Branch1' ORDER BY c.conscount desc").show(1)
     println("+" + ("=" * 49) + "+")
+
     /* ~ Lease Consumed beverages for Branch 2 ~ */
     println("Top least consumed beverages in Branch 2:")
     println("+" + ("=" * 49) + "+")
     spark.sql("SELECT DISTINCT c.beverage, c.conscount FROM bev_branches b JOIN bev_conscount c ON b.beverage=c.beverage WHERE b.branch = 'Branch2' ORDER BY c.conscount asc").show(1)
+
     /* ~ Average Consumed beverages for Branch 2 ~ */
     println("+" + ("=" * 49) + "+")
     println("Average consumed beverage in Branch 2:")
@@ -73,27 +76,32 @@ object ScenarioMode {
     println("+" + ("=" * 49) + "+")
     spark.sql("SELECT DISTINCT b.branch, c.beverage FROM bev_branches b JOIN bev_conscount c ON b.beverage=c.beverage WHERE b.branch = 'Branch9' OR b.branch = 'Branch8' OR b.branch = 'Branch1' ORDER BY b.branch desc").show(40)
     */
+
     /* ~ Beverage availability on Branch 10 ~ */
     println("+" + ("=" * 49) + "+")
     println("beverages available on Branch10")
     println("+" + ("=" * 49) + "+")
     spark.sql("SELECT DISTINCT c.beverage FROM bev_branches b JOIN bev_conscount c ON b.beverage=c.beverage WHERE b.branch = 'Branch10'").show(40)
+
     /* ~ Beverage availability on Branch 9 ~ */
     println("+" + ("=" * 49) + "+")
     println("beverages available on Branch9")
     println("+" + ("=" * 49) + "+")
     spark.sql("SELECT DISTINCT c.beverage FROM bev_branches b JOIN bev_conscount c ON b.beverage=c.beverage WHERE b.branch = 'Branch9'").show(40)
+
     /* ~ Beverage availability on Branch 8 ~ */
     println("+" + ("=" * 49) + "+")
     println("beverages available on Branch8")
     println("+" + ("=" * 49) + "+")
     spark.sql("SELECT DISTINCT c.beverage FROM bev_branches b JOIN bev_conscount c ON b.beverage=c.beverage WHERE b.branch = 'Branch8'").show(40)
     println("+" + ("=" * 49) + "+")
+
     /* ~ Beverage availability on Branch 1 ~ */
     println("beverages available on Branch1")
     println("+" + ("=" * 49) + "+")
     spark.sql("SELECT DISTINCT c.beverage FROM bev_branches b JOIN bev_conscount c ON b.beverage=c.beverage WHERE b.branch = 'Branch1'").show(40)
     println("+" + ("=" * 49) + "+")
+
     /* ~ Common beverages on Branch 4 & 7 [INNER JOIN]  ~ */
     println("beverages available on Branch 4 and 7")
     println("+" + ("=" * 49) + "+")
@@ -104,8 +112,10 @@ object ScenarioMode {
     /* ~ Create new table partitioned by branch from existing other tables ~ */
     //    spark.sql("CREATE TABLE IF NOT EXISTS bev_branches_partitioned(beverage String) PARTITIONED BY (branch String)")
     //    spark.sql("set hive.exec.dynamic.partition.mode=nonrestrict")
+
     /* ~ Loads data from other tables into partitioned table ~ */
     //    spark.sql("INSERT OVERWRITE TABLE bev_branches_partitioned PARTITION(branch) SELECT beverage,branch FROM bev_branches")
+
     /* ~  Showcase of partitioned table calling Branch 4 & 7 ~ */
     println("+" + ("=" * 49) + "+")
     println(
@@ -120,12 +130,14 @@ object ScenarioMode {
     /* ~ Adds test notes and comments ~ */
     //    spark.sql("ALTER TABLE bev_branches_partitioned SET TBLPROPERTIES('comment' = 'Partitioned by branch.')")
     //    spark.sql("ALTER TABLE bev_branches_partitioned SET TBLPROPERTIES('note' = 'TEST note.')")
+
     /* ~ Displays information on partitioned table ~ */
     println("+" + ("=" * 49) + "+")
     println("Information on partitioned table:")
     println("+" + ("=" * 49) + "+")
     spark.sql("SHOW TBLPROPERTIES bev_branches_partitioned").show
     spark.sql("Describe formatted bev_branches_partitioned").show(50)
+
     /* ~ Displays information on the two main tables used in this project for comparison ~ */
     println("+" + ("=" * 49) + "+")
     println("Other tables used [source]:")
@@ -148,6 +160,8 @@ object ScenarioMode {
      * in terms of beverage variety/availability and how it relates to branch
      * performance. */
 
+    /* Declares lazy variables to populate and write out CSV for Excel Use
+    * Lazy was chosen prevent unnecessary extra CPU load when compiling */
     lazy val pop_beverages = spark.sql("SELECT DISTINCT b.branch, c.beverage FROM bev_branches b JOIN bev_conscount c ON b.beverage=c.beverage WHERE c.conscount = 1052 ORDER BY b.branch asc")
     lazy val avail_bev = pivot1src.groupBy("b.branch").agg(count("c.beverage")).sort("b.branch")
     lazy val totalSales = pivot1src.groupBy("c.beverage").pivot("b.branch").agg(count("c.conscount")).sort("c.beverage")
