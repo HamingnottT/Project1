@@ -1,6 +1,9 @@
 # Revature - Coffee Shop Analysis
 
-## <Project description>
+## Project Description
+
+Welcome to my first big data project for Revature!
+This is a demonstration of how Spark & Hive can be utilized through Scala to manipulate and interpret data.
   
 ## Technologies Used
   
@@ -33,6 +36,6 @@ To-do list/known bugs:
 2. Using Command Prompt in current directory, enter 'scala MainPortal.scala' to enter the main menu
 3. Follow the directions that appear in your command terminal to operate the program
   
-Thank you for using my first scala program - any feedback is greatly appreciated!
+Thank you for using my first big data program using Scala - any feedback is greatly appreciated!
   
 ## License
